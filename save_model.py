@@ -1,15 +1,3 @@
-"""
-save_model.py
-Run this script ONCE to train the English→French model and save all artifacts.
-Outputs (saved into ./model/):
-  - translation_model.h5   (full training model)
-  - encoder_model.h5
-  - decoder_model.h5
-  - eng_tokenizer.pkl
-  - fra_tokenizer.pkl
-  - config.json            (vocab sizes, max lengths, LSTM units)
-"""
-
 import os, json, pickle
 import numpy as np
 import pandas as pd
@@ -22,13 +10,11 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Embedding, LSTM, Dense, Dropout
 from sklearn.model_selection import train_test_split
 
-# ─── Paths ────────────────────────────────────────────────────────────────────
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR    = os.path.join(BASE_DIR, "Dataset to be uploaded on colab")
 MODEL_DIR   = os.path.join(BASE_DIR, "model")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-# ─── Hyperparameters ──────────────────────────────────────────────────────────
 MAX_LEN    = 12
 MAX_PAIRS  = 40000
 ENG_VOCAB  = 6000
@@ -38,14 +24,12 @@ LSTM_UNITS = 128
 EPOCHS     = 25
 BATCH_SIZE = 64
 
-# ─── Step 1: Load Data ────────────────────────────────────────────────────────
 print("Loading data...")
 en_df = pd.read_csv(os.path.join(DATA_DIR, "en.csv"), header=None, names=["english"])
 fr_df = pd.read_csv(os.path.join(DATA_DIR, "fr.csv"), header=None, names=["french"])
 df = pd.concat([en_df, fr_df], axis=1).dropna().reset_index(drop=True)
 print(f"  Total pairs: {len(df)}")
 
-# ─── Step 2: Clean & Tokenise ─────────────────────────────────────────────────
 def clean_text(sentence):
     sentence = str(sentence).lower().strip()
     sentence = re.sub(r"([?.!,'])", r" \1 ", sentence)
@@ -66,7 +50,6 @@ if len(df) > MAX_PAIRS:
 
 print(f"  After filtering: {len(df)} pairs")
 
-# ─── Step 3: Build Tokenisers ─────────────────────────────────────────────────
 print("Building tokenizers...")
 eng_tokenizer = Tokenizer(num_words=ENG_VOCAB, oov_token="<oov>", filters="")
 eng_tokenizer.fit_on_texts(df["english_clean"])
@@ -78,7 +61,6 @@ eng_vocab_size = min(ENG_VOCAB, len(eng_tokenizer.word_index)) + 1
 fra_vocab_size = min(FRA_VOCAB, len(fra_tokenizer.word_index)) + 1
 print(f"  English vocab: {eng_vocab_size}  |  French vocab: {fra_vocab_size}")
 
-# ─── Step 4: Encode Sequences ─────────────────────────────────────────────────
 enc_seqs = pad_sequences(eng_tokenizer.texts_to_sequences(df["english_clean"]), padding="post")
 dec_in   = pad_sequences(fra_tokenizer.texts_to_sequences(df["french_in"]),     padding="post")
 dec_out  = pad_sequences(fra_tokenizer.texts_to_sequences(df["french_out"]),    padding="post")
@@ -91,7 +73,6 @@ enc_train, enc_val, dec_in_train, dec_in_val, dec_out_train, dec_out_val = train
 )
 print(f"  Train: {len(enc_train)}  |  Val: {len(enc_val)}")
 
-# ─── Step 5: Build Model ──────────────────────────────────────────────────────
 print("Building model...")
 encoder_inputs = Input(shape=(None,), name="encoder_input")
 enc_emb        = Embedding(eng_vocab_size, EMBED_DIM, mask_zero=True)(encoder_inputs)
@@ -111,7 +92,6 @@ model = Model([encoder_inputs, decoder_inputs], output)
 model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 model.summary()
 
-# ─── Step 6: Train ────────────────────────────────────────────────────────────
 print("Training...")
 early_stop = tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=4, restore_best_weights=True)
 reduce_lr  = tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=2, factor=0.5, verbose=1)
@@ -124,7 +104,6 @@ model.fit(
     callbacks=[early_stop, reduce_lr],
 )
 
-# ─── Step 7: Build Inference Models ───────────────────────────────────────────
 print("Building inference models...")
 encoder_model = Model(encoder_inputs, [state_h, state_c])
 
@@ -132,7 +111,7 @@ dec_state_h_inp = Input(shape=(LSTM_UNITS,), name="dec_state_h")
 dec_state_c_inp = Input(shape=(LSTM_UNITS,), name="dec_state_c")
 
 decoder_lstm_layer      = model.get_layer("decoder_lstm")
-decoder_embedding_layer = model.layers[3]   # French embedding
+decoder_embedding_layer = model.layers[3]
 
 dec_emb_inf         = decoder_embedding_layer(decoder_inputs)
 dec_out_inf, h2, c2 = decoder_lstm_layer(dec_emb_inf, initial_state=[dec_state_h_inp, dec_state_c_inp])
@@ -143,7 +122,6 @@ decoder_model = Model(
     [dec_out_inf, h2, c2],
 )
 
-# ─── Step 8: Save Artifacts ───────────────────────────────────────────────────
 print("Saving artifacts...")
 model.save(os.path.join(MODEL_DIR, "translation_model.h5"))
 encoder_model.save(os.path.join(MODEL_DIR, "encoder_model.h5"))

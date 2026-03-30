@@ -1,7 +1,3 @@
-"""
-app.py  –  Flask application for English → French Neural Machine Translation
-"""
-
 import os
 import re
 import json
@@ -10,7 +6,6 @@ import pickle
 import numpy as np
 from flask import Flask, render_template, request, jsonify
 
-# ─── Lazy-load model on first request ────────────────────────────────────────
 _encoder_model      = None
 _decoder_model      = None
 _eng_tokenizer      = None
@@ -28,16 +23,14 @@ app = Flask(__name__)
 
 
 def load_artifacts():
-    """Load all model artifacts once and cache them in module-level globals."""
     global _encoder_model, _decoder_model
     global _eng_tokenizer, _fra_tokenizer
     global _index_to_french, _start_idx, _end_idx
     global _enc_max_len, _lstm_units
 
     if _encoder_model is not None:
-        return  # already loaded
+        return
 
-    # Import TF here to avoid slowing down the import of this module
     from tensorflow.keras.models import load_model
 
     print("Loading model artifacts…")
@@ -97,8 +90,6 @@ def translate(sentence: str) -> str:
     return " ".join(result_words).strip()
 
 
-# ─── Routes ───────────────────────────────────────────────────────────────────
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -115,7 +106,6 @@ def translate_route():
     if len(text) > 300:
         return jsonify({"error": "Input too long. Please keep it under 300 characters."}), 400
 
-    # Check model files exist
     required = ["encoder_model.h5", "decoder_model.h5",
                 "eng_tokenizer.pkl", "fra_tokenizer.pkl", "config.json"]
     missing = [f for f in required if not os.path.exists(os.path.join(MODEL_DIR, f))]
@@ -142,7 +132,6 @@ def health():
     return jsonify({"status": "ok"})
 
 
-# ─── Entry point ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

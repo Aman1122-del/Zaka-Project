@@ -8,14 +8,12 @@
 </head>
 <body>
 
-  <!-- ── Background blobs ── -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
 
   <div class="page-wrapper">
 
-    <!-- ── Header ── -->
     <header class="site-header">
       <div class="header-inner">
         <div class="logo">
@@ -26,11 +24,9 @@
       </div>
     </header>
 
-    <!-- ── Main card ── -->
     <main class="main-content">
       <div class="card">
 
-        <!-- Card header -->
         <div class="card-header">
           <h1 class="card-title">Translate English to French</h1>
           <p class="card-subtitle">
@@ -38,10 +34,8 @@
           </p>
         </div>
 
-        <!-- Translation form -->
         <div class="translator-grid">
 
-          <!-- Input pane -->
           <div class="pane pane-input">
             <div class="pane-label">
               <span class="flag">🇬🇧</span>
@@ -60,7 +54,6 @@
             </div>
           </div>
 
-          <!-- Arrow / swap divider -->
           <div class="divider">
             <div class="arrow-wrap">
               <svg viewBox="0 0 24 24" class="arrow-icon" aria-hidden="true">
@@ -70,7 +63,6 @@
             </div>
           </div>
 
-          <!-- Output pane -->
           <div class="pane pane-output">
             <div class="pane-label">
               <span class="flag">🇫🇷</span>
@@ -95,9 +87,8 @@
             </button>
           </div>
 
-        </div><!-- /.translator-grid -->
+        </div>
 
-        <!-- Translate button -->
         <div class="action-row">
           <button id="translateBtn" class="btn-translate" aria-label="Translate">
             <span class="btn-text">Translate</span>
@@ -105,15 +96,13 @@
           </button>
         </div>
 
-        <!-- Error message -->
         <div id="errorBox" class="error-box" role="alert" aria-live="assertive" hidden>
           <span class="error-icon">⚠️</span>
           <span id="errorMsg"></span>
         </div>
 
-      </div><!-- /.card -->
+      </div>
 
-      <!-- ── Example sentences ── -->
       <section class="examples-section">
         <h2 class="examples-title">Try an example</h2>
         <div class="examples-grid">
@@ -126,17 +115,15 @@
         </div>
       </section>
 
-    </main><!-- /.main-content -->
+    </main>
 
-    <!-- ── Footer ── -->
     <footer class="site-footer">
       <p>Built with <span class="heart">♥</span> using Python · TensorFlow · Flask · Docker</p>
     </footer>
 
-  </div><!-- /.page-wrapper -->
+  </div>
 
   <script>
-    // ── Elements ──────────────────────────────────────────────────────────────
     const inputText    = document.getElementById("inputText");
     const outputBox    = document.getElementById("outputBox");
     const translateBtn = document.getElementById("translateBtn");
@@ -145,12 +132,10 @@
     const errorBox     = document.getElementById("errorBox");
     const errorMsg     = document.getElementById("errorMsg");
 
-    // ── Character counter ─────────────────────────────────────────────────────
     inputText.addEventListener("input", () => {
       charCount.textContent = inputText.value.length;
     });
 
-    // ── Example chips ─────────────────────────────────────────────────────────
     document.querySelectorAll(".example-chip").forEach(btn => {
       btn.addEventListener("click", () => {
         inputText.value = btn.dataset.text;
@@ -160,14 +145,12 @@
       });
     });
 
-    // ── Translate on Enter (Ctrl/Cmd + Enter) ─────────────────────────────────
     inputText.addEventListener("keydown", e => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") doTranslate();
     });
 
     translateBtn.addEventListener("click", doTranslate);
 
-    // ── Copy button ───────────────────────────────────────────────────────────
     copyBtn.addEventListener("click", () => {
       const text = outputBox.dataset.translation || "";
       if (!text) return;
@@ -186,7 +169,6 @@
       });
     });
 
-    // ── Core translate function ───────────────────────────────────────────────
     async function doTranslate() {
       const text = inputText.value.trim();
       if (!text) {
@@ -219,7 +201,6 @@
       }
     }
 
-    // ── UI helpers ────────────────────────────────────────────────────────────
     function setLoading(on) {
       translateBtn.classList.toggle("loading", on);
       translateBtn.disabled = on;
@@ -236,9 +217,8 @@
       outputBox.dataset.translation  = text;
       outputBox.classList.add("has-result");
       copyBtn.disabled = false;
-      // small fade-in
       outputBox.style.animation = "none";
-      outputBox.offsetHeight;       // reflow
+      outputBox.offsetHeight;
       outputBox.style.animation = "fadeInUp 0.4s ease both";
     }
 
