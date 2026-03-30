@@ -1,0 +1,7 @@
+{
+  "eng_vocab_size": 202,
+  "fra_vocab_size": 300,
+  "enc_max_len": 11,
+  "lstm_units": 128,
+  "embed_dim": 64
+}

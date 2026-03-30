@@ -1,0 +1,38 @@
+# ── Python cache ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Jupyter notebooks & raw dataset (not needed inside the container) ──────────
+*.ipynb
+Dataset to be uploaded on colab/
+
+# ── Version control ────────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── IDE / editor artefacts ────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+.env
+*.env
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+*.md
+README*
+
+# ── OS cruft ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── save_model script (training utility, not needed at runtime) ───────────────
+save_model.py

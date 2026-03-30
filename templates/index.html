@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English → French Translator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+  <!-- ── Background blobs ── -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="page-wrapper">
+
+    <!-- ── Header ── -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">🌐</span>
+          <span class="logo-text">NMT <span class="accent">Translator</span></span>
+        </div>
+        <p class="tagline">Neural Machine Translation · English → French</p>
+      </div>
+    </header>
+
+    <!-- ── Main card ── -->
+    <main class="main-content">
+      <div class="card">
+
+        <!-- Card header -->
+        <div class="card-header">
+          <h1 class="card-title">Translate English to French</h1>
+          <p class="card-subtitle">
+            Powered by an LSTM Encoder–Decoder neural network trained on 40,000 sentence pairs.
+          </p>
+        </div>
+
+        <!-- Translation form -->
+        <div class="translator-grid">
+
+          <!-- Input pane -->
+          <div class="pane pane-input">
+            <div class="pane-label">
+              <span class="flag">🇬🇧</span>
+              <span>English</span>
+            </div>
+            <textarea
+              id="inputText"
+              class="text-area"
+              placeholder="Type an English sentence here…"
+              maxlength="300"
+              rows="5"
+              aria-label="English input"
+            ></textarea>
+            <div class="char-counter">
+              <span id="charCount">0</span> / 300 characters
+            </div>
+          </div>
+
+          <!-- Arrow / swap divider -->
+          <div class="divider">
+            <div class="arrow-wrap">
+              <svg viewBox="0 0 24 24" class="arrow-icon" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Output pane -->
+          <div class="pane pane-output">
+            <div class="pane-label">
+              <span class="flag">🇫🇷</span>
+              <span>French</span>
+            </div>
+            <div
+              id="outputBox"
+              class="text-area output-area"
+              aria-live="polite"
+              aria-label="French translation"
+            >
+              <span class="placeholder-text">Translation will appear here…</span>
+            </div>
+            <button id="copyBtn" class="btn-copy" title="Copy translation" disabled>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"
+                      stroke="currentColor" stroke-width="2" fill="none"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                      stroke="currentColor" stroke-width="2" fill="none"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+
+        </div><!-- /.translator-grid -->
+
+        <!-- Translate button -->
+        <div class="action-row">
+          <button id="translateBtn" class="btn-translate" aria-label="Translate">
+            <span class="btn-text">Translate</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <!-- Error message -->
+        <div id="errorBox" class="error-box" role="alert" aria-live="assertive" hidden>
+          <span class="error-icon">⚠️</span>
+          <span id="errorMsg"></span>
+        </div>
+
+      </div><!-- /.card -->
+
+      <!-- ── Example sentences ── -->
+      <section class="examples-section">
+        <h2 class="examples-title">Try an example</h2>
+        <div class="examples-grid">
+          <button class="example-chip" data-text="I love learning new languages.">I love learning new languages.</button>
+          <button class="example-chip" data-text="The weather is beautiful today.">The weather is beautiful today.</button>
+          <button class="example-chip" data-text="She is reading a book.">She is reading a book.</button>
+          <button class="example-chip" data-text="We need to go to the market.">We need to go to the market.</button>
+          <button class="example-chip" data-text="Can you help me please?">Can you help me please?</button>
+          <button class="example-chip" data-text="He is a very good student.">He is a very good student.</button>
+        </div>
+      </section>
+
+    </main><!-- /.main-content -->
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+      <p>Built with <span class="heart">♥</span> using Python · TensorFlow · Flask · Docker</p>
+    </footer>
+
+  </div><!-- /.page-wrapper -->
+
+  <script>
+    // ── Elements ──────────────────────────────────────────────────────────────
+    const inputText    = document.getElementById("inputText");
+    const outputBox    = document.getElementById("outputBox");
+    const translateBtn = document.getElementById("translateBtn");
+    const copyBtn      = document.getElementById("copyBtn");
+    const charCount    = document.getElementById("charCount");
+    const errorBox     = document.getElementById("errorBox");
+    const errorMsg     = document.getElementById("errorMsg");
+
+    // ── Character counter ─────────────────────────────────────────────────────
+    inputText.addEventListener("input", () => {
+      charCount.textContent = inputText.value.length;
+    });
+
+    // ── Example chips ─────────────────────────────────────────────────────────
+    document.querySelectorAll(".example-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        inputText.value = btn.dataset.text;
+        charCount.textContent = inputText.value.length;
+        inputText.focus();
+        doTranslate();
+      });
+    });
+
+    // ── Translate on Enter (Ctrl/Cmd + Enter) ─────────────────────────────────
+    inputText.addEventListener("keydown", e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") doTranslate();
+    });
+
+    translateBtn.addEventListener("click", doTranslate);
+
+    // ── Copy button ───────────────────────────────────────────────────────────
+    copyBtn.addEventListener("click", () => {
+      const text = outputBox.dataset.translation || "";
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => {
+          copyBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"
+                    stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                    stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+            Copy`;
+        }, 2000);
+      });
+    });
+
+    // ── Core translate function ───────────────────────────────────────────────
+    async function doTranslate() {
+      const text = inputText.value.trim();
+      if (!text) {
+        showError("Please enter an English sentence first.");
+        return;
+      }
+
+      hideError();
+      setLoading(true);
+      clearOutput();
+
+      try {
+        const res = await fetch("/translate", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ text }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          showError(data.error || "An unexpected error occurred.");
+        } else {
+          showTranslation(data.translation);
+        }
+      } catch (_) {
+        showError("Network error. Please check your connection and try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────────────────
+    function setLoading(on) {
+      translateBtn.classList.toggle("loading", on);
+      translateBtn.disabled = on;
+    }
+
+    function clearOutput() {
+      outputBox.innerHTML  = `<span class="placeholder-text">Translating…</span>`;
+      outputBox.dataset.translation = "";
+      copyBtn.disabled = true;
+    }
+
+    function showTranslation(text) {
+      outputBox.textContent          = text;
+      outputBox.dataset.translation  = text;
+      outputBox.classList.add("has-result");
+      copyBtn.disabled = false;
+      // small fade-in
+      outputBox.style.animation = "none";
+      outputBox.offsetHeight;       // reflow
+      outputBox.style.animation = "fadeInUp 0.4s ease both";
+    }
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorBox.hidden = false;
+      outputBox.innerHTML = `<span class="placeholder-text">Translation will appear here…</span>`;
+    }
+
+    function hideError() {
+      errorBox.hidden = true;
+    }
+  </script>
+
+</body>
+</html>

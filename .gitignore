@@ -1,0 +1,30 @@
+# ── Virtual environments ───────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Python cache ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# ── Model binary files (too large for GitHub, use Git LFS or store separately)
+# Comment these out if you DO want to push model files
+model/*.h5
+model/*.pkl
+
+# ── Jupyter checkpoints ────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Dataset ────────────────────────────────────────────────────────────────────
+Dataset to be uploaded on colab/
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+.env
+*.env
+
+# ── OS cruft ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
