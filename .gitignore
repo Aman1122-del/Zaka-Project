@@ -10,10 +10,9 @@ __pycache__/
 *.pyd
 *.so
 
-# ── Model binary files (too large for GitHub, use Git LFS or store separately)
-# Comment these out if you DO want to push model files
-model/*.h5
-model/*.pkl
+# ── Model binary files are included (all under 4MB, safe for GitHub) ──────────
+# model/*.h5
+# model/*.pkl
 
 # ── Jupyter checkpoints ────────────────────────────────────────────────────────
 .ipynb_checkpoints/
